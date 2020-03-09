@@ -6,7 +6,7 @@ mysql = MySQL()
 
 # MySQL configurations
 app.config['MYSQL_DATABASE_USER'] = 'sundhar'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'password'
+app.config['MYSQL_DATABASE_PASSWORD'] = ''
 app.config['MYSQL_DATABASE_DB'] = 'flask'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 
@@ -15,8 +15,9 @@ mysql.init_app(app)
 @app.route('/')
 def get():
 	cur = mysql.connect().cursor()
-	cur.execute('''SELECt * FROM sample''')
-	r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
+	#cur.execute('''SELECt * FROM sample''')
+	#r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
+	r = {1: 1, 2: 2}
 	return jsonify({'data': r})
 
 if __name__ == '__main__':
