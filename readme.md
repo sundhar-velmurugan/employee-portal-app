@@ -6,3 +6,6 @@
 - Activate the virtual environment `source env/bin/activate`
 - `python3 app.py` or `python3.6 app.py`
 - App runs in `localhost:5000`
+
+---
+App design in `/design' folder
