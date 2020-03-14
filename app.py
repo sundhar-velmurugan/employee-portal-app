@@ -12,6 +12,9 @@ mysql.init_app(app)
 def auth_wrapper(method):
 	@wraps(method)
 	def wrapper():
+		# pass the type of user as an argument to the method
+		# if the user has scope allow operation
+		# else deny access
 		pass
 
 @app.route('/', methods=['GET'])
