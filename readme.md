@@ -9,6 +9,7 @@
 
 ---
 App design in `/design` folder
+
 ---
 ### To add configurations
 - Create `config.py` in the project root directory
