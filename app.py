@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flaskext.mysql import MySQL
+from functools import wraps
 from db import MySQLConnection
 
 app = Flask(__name__)
@@ -7,6 +8,11 @@ app.config.from_pyfile('config.py')
 
 mysql = MySQL()
 mysql.init_app(app)
+
+def auth_wrapper():
+	@wraps
+	def wrapper():
+		pass
 
 @app.route('/', methods=['GET'])
 def home():
