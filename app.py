@@ -9,8 +9,8 @@ app.config.from_pyfile('config.py')
 mysql = MySQL()
 mysql.init_app(app)
 
-def auth_wrapper():
-	@wraps
+def auth_wrapper(method):
+	@wraps(method)
 	def wrapper():
 		pass
 
