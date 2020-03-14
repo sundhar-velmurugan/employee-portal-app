@@ -9,3 +9,14 @@
 
 ---
 App design in `/design` folder
+---
+### To add configurations
+- Create `config.py` in the project root directory
+- Add the following
+```
+DEBUG=True [or] False
+MYSQL_DATABASE_USER='sundhar'
+MYSQL_DATABASE_PASSWORD=''
+MYSQL_DATABASE_DB='flask'
+MYSQL_DATABASE_HOST='localhost'
+```
