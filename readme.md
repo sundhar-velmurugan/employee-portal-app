@@ -8,7 +8,7 @@
 - App runs in `localhost:5000`
 
 ---
-App design in `/design` folder
+App design in `/helper` folder
 
 ---
 ### To add configurations
