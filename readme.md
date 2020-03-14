@@ -21,3 +21,5 @@ MYSQL_DATABASE_PASSWORD=''
 MYSQL_DATABASE_DB='flask'
 MYSQL_DATABASE_HOST='localhost'
 ```
+### Initialize database
+To create the same database structure used in this application refer `helper/db\ queries.md`
