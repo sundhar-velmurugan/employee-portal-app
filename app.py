@@ -29,14 +29,17 @@ def auth_wrapper(method):
 def add_user():
 	try:
 		data = AddUser().load(req.get_json(force = True))
-		print(data)
+		if data['user_type'] == 'admin':
+			pass
+		elif data['user_type'] == 'manager':
+			pass
+		elif data['user_type'] == 'staff':
+			pass
+		return jsonify({ 'status': 200, 'response': 'OK' })	
 	except ValidationError as err:
 		return jsonify(err.messages)
 	except:
 		return jsonify({'message': 'Error occured'})
-	# print(f'incoming data: {data["type"]}')
-	# print(generate_password())
-	return jsonify({ 'status': 200, 'response': 'OK' })	
 
 @app.route('/', methods=['GET'])
 def home():

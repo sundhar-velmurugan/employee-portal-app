@@ -18,11 +18,14 @@ Change User Scope | Super Admin (if Primary user), Admin, Manager, Staff | Manag
 Method | URL | Description
 --- | --- | ---
 POST | /api/login | User Login
+GET | /api/users | Get public details of all users (limit to 100)
+GET | /api/user/:id | Get public user details (if not authenticated)
 
 ### Protected API:
 Method | URL | Description
 --- | --- | ---
 POST | /api/add | Add user
+GET | /api/user/:id | Get entire user details (if authenticated)
 DELETE | /api/user/:id | Remove user
 PATCH | /api/user/:id | Edit user details, Change user scope
 PUT | /api/login/:id | Password change
