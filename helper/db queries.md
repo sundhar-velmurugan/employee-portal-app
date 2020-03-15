@@ -4,7 +4,7 @@ CREATE DATABASE flask;
 ```
 ### Create Employee Details Table:
 ```
-CREATE TABLE EmployeeDetails (id INT UNSIGNED AUTO_INCREMENT, first_name VARCHAR(20), last_name VARCHAR(20) NOT NULL, title VARCHAR(30) NOT NULL, phone_number VARCHAR(15), date_of_birth DATE NOT NULL, email VARCHAR(255) NOT NULL,creation_time DATETIME DEFAULT CURRENT_TIMESTAMP, modification_time DATETIME ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (id));
+CREATE TABLE EmployeeDetails (id INT UNSIGNED AUTO_INCREMENT, first_name VARCHAR(20), last_name VARCHAR(20) NOT NULL, title VARCHAR(30) NOT NULL, phone_number VARCHAR(15), date_of_birth DATE NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, creation_time DATETIME DEFAULT CURRENT_TIMESTAMP, modification_time DATETIME ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (id));
 ```
 ### Create Employee Login Table:
 ```

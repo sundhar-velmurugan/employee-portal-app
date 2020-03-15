@@ -1,12 +1,16 @@
-from flask import Flask, jsonify, request as req
+# Application modules
+from flask import Flask, jsonify, request as req, abort
 from flaskext.mysql import MySQL
-from functools import wraps
 from marshmallow import ValidationError
+
+# General modules
+from functools import wraps
 
 # Custom Functions
 from db import MySQLConnection
 from random_password_generator import random_password_generator
 from schema import AddUser
+from util import get_items, generate_placeholders
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -22,24 +26,56 @@ def auth_wrapper(method):
 	def wrapper():
 		# pass the type of user as an argument to the method
 		# if the user has scope allow operation
+		# NOTE: need to find whether it makes sense to pass the operation as argument
+		# 			to the decorator is a good idea
 		# else deny access
 		pass
 
 @app.route('/api/add', methods=['POST'])
 def add_user():
+	connection = None
 	try:
 		data = AddUser().load(req.get_json(force = True))
-		if data['user_type'] == 'admin':
-			pass
-		elif data['user_type'] == 'manager':
-			pass
-		elif data['user_type'] == 'staff':
-			pass
-		return jsonify({ 'status': 200, 'response': 'OK' })	
+		if data.get('options', None):
+			options = data['options']
+			del data['options']
+		username, email, user_type = data['username'], data['email'], data['user_type']
+		del data['username']
+		del data['user_type']
+		keys, values = get_items(data)
+		# Add added by user to the data by getting from authentication
+		connection = mysql.connect()
+		with connection.cursor() as cur:
+			detail_query = "INSERT INTO EmployeeDetails ("+keys+") VALUES ("+generate_placeholders(len(values))+")"
+			cur.execute(detail_query, values)
+			cur.execute("SELECT id FROM EmployeeDetails WHERE email=%s", (email))
+			user_id = cur.fetchall()[0][0]
+			# TODO: Hash passwords
+			password = generate_password()
+			login_query = "INSERT INTO EmployeeLogin VALUES ("+generate_placeholders(3)+")"
+			cur.execute(login_query, (user_id, username, password))
+			if user_type == 'admin':
+				options['id'] = user_id
+				keys, values = get_items(options)
+				if len(keys):
+					role_query = "INSERT INTO AdminInfo ("+keys+") VALUES ("+generate_placeholders(3)+")"
+					cur.execute(role_query, values)
+			elif user_type == 'manager':
+				pass
+			elif user_type == 'staff':
+				pass
+		connection.commit()
+		return jsonify({ 'message': 'User Created' })
 	except ValidationError as err:
-		return jsonify(err.messages)
-	except:
-		return jsonify({'message': 'Error occured'})
+		return jsonify({ 'message': err.messages }), 400
+	except Exception as err:
+		if connection:
+			connection.rollback()
+		print("Unexpected error:", err)
+		return jsonify({ 'message': 'Cannot process request' }), 500
+	finally:
+		if connection:
+			connection.close()
 
 @app.route('/', methods=['GET'])
 def home():
