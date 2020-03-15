@@ -9,7 +9,7 @@ import jwt
 from functools import wraps
 from datetime import datetime, timedelta
 
-# Custom Functions
+# Custom modules
 from db import MySQLConnection
 from random_password_generator import random_password_generator
 from schema import AddUser, UserLogin
