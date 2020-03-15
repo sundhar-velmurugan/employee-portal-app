@@ -24,4 +24,4 @@ Method | URL | Description
 --- | --- | ---
 POST | /api/add | Add user
 DELETE | /api/:id | Remove user
-PATCH | /api/:id | Edit user details, Change user scope
+PATCH | /api/:id | Edit user details, Change user scope, Password Change

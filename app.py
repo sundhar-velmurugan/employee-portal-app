@@ -2,12 +2,15 @@ from flask import Flask, jsonify, request as req
 from flaskext.mysql import MySQL
 from functools import wraps
 from db import MySQLConnection
+from random_password_generator import random_password_generator
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
 mysql = MySQL()
 mysql.init_app(app)
+
+generate_password = random_password_generator()
 
 def auth_wrapper(method):
 	@wraps(method)
@@ -32,6 +35,7 @@ def home():
 def add_user():
 	data = req.get_json(force = True)
 	print(f'incoming data: {data["type"]}')
+	print(generate_password())
 	return jsonify({ 'status': 200, 'response': 'OK' })	
 
 if __name__ == '__main__':
