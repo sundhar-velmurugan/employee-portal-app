@@ -1,5 +1,5 @@
 # Application modules
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request
 from flaskext.mysql import MySQL
 from marshmallow import ValidationError
 from flask_bcrypt import Bcrypt
@@ -15,7 +15,9 @@ from random_password_generator import random_password_generator
 from schema import AddUser, UserLogin
 from util import get_items, generate_placeholders
 
+# creating instance of the Flask class
 app = Flask(__name__)
+
 app.config.from_pyfile('config.py')
 mysql = MySQL()
 mysql.init_app(app)
