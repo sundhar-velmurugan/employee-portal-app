@@ -2,6 +2,7 @@
 from flask import Flask, jsonify, request as req, abort
 from flaskext.mysql import MySQL
 from marshmallow import ValidationError
+from flask_bcrypt import Bcrypt
 
 # General modules
 from functools import wraps
@@ -14,9 +15,9 @@ from util import get_items, generate_placeholders
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
-
 mysql = MySQL()
 mysql.init_app(app)
+bcrypt = Bcrypt(app)
 
 # For random password generation on account creation
 generate_password = random_password_generator()
@@ -50,10 +51,12 @@ def add_user():
 			cur.execute(detail_query, values)
 			cur.execute("SELECT id FROM EmployeeDetails WHERE email=%s", (email))
 			user_id = cur.fetchall()[0][0]
-			# TODO: Hash passwords
 			password = generate_password()
+			pw_hash = bcrypt.generate_password_hash(password)
+			# if bcrypt.check_password_hash(pw_hash, password):
+			# 	print('Passwords match!!')
 			login_query = "INSERT INTO EmployeeLogin VALUES ("+generate_placeholders(3)+")"
-			cur.execute(login_query, (user_id, username, password))
+			cur.execute(login_query, (user_id, username, pw_hash))
 			if user_type == 'admin':
 				options['id'] = user_id
 				keys, values = get_items(options)
