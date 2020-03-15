@@ -31,14 +31,15 @@ def auth_wrapper(method):
 		try:
 			payload = jwt.decode(access_token.encode('utf-8'), app.config['TOKEN_KEY'], algorithms='HS256')
 			username = payload['username']
+			current_user = None
 			with MySQLConnection(mysql) as connection:
 				with connection.cursor() as cur:
-					get_user = "SELECT username FROM EmployeeLogin WHERE username = %s"
+					get_user = "SELECT username, id FROM EmployeeLogin WHERE username = %s"
 					cur.execute(get_user, username)
-					fetched_username = cur.fetchall()[0][0]
+					fetched_username, current_user = cur.fetchall()[0]
 					if not fetched_username:
 						raise Exception('Invalid Token')
-			return method(*args, **kwargs)
+			return method(current_user=current_user, *args, **kwargs)
 		except jwt.exceptions.ExpiredSignatureError as e:
 			return jsonify({ 'message': 'Session Expired' }), 403
 		except Exception as e:
@@ -69,7 +70,7 @@ def login():
 
 @app.route('/api/add', methods=['POST'])
 @auth_wrapper
-def add_user():
+def add_user(current_user_id):
 	connection = None
 	try:
 		data = AddUser().load(request.get_json(force = True))
