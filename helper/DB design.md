@@ -12,28 +12,28 @@ Email | VARCHAR(255) | NOT NULL
 ### Staff Info
 Column | Data Type | Constraints 
 --- | --- | ---
-Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id), NOT NULL
+Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id), NOT NULL, UNIQUE
 Added By | INT UNSIGNED | FOREIGN KEY – Admin Table(Id), NOT NULL
 Reporting To | INT UNSIGNED | FOREIGN KEY – Manager Table(Id)
 
 ### Manager Info
 Column | Data Type | Constraints 
 --- | --- | ---
-Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id), NOT NULL
+Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id), NOT NULL, UNIQUE
 Added By | INT UNSIGNED | FOREIGN KEY – Admin Table(Id), NOT NULL
 Reporting To | INT UNSIGNED | FOREIGN KEY – Admin Table(Id)
 
 ### Admin Info
 Column | Data Type | Constraints 
 --- | --- | ---
-Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id), NOT NULL
+Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id), NOT NULL, UNIQUE
 Super User | BOOL | DEFAULT false
 Primary User | BOOL | DEFAULT false
 
 ### Employee Login
 Column | Data Type | Constraints 
 --- | --- | ---
-Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id)
+Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id), UNIQUE
 Username | VARCHAR(20) | PRIMARY KEY
 Password | BINARY(60) | NOT NULL
 

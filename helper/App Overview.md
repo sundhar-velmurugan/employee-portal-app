@@ -23,5 +23,6 @@ POST | /api/login | User Login
 Method | URL | Description
 --- | --- | ---
 POST | /api/add | Add user
-DELETE | /api/:id | Remove user
-PATCH | /api/:id | Edit user details, Change user scope, Password Change
+DELETE | /api/user/:id | Remove user
+PATCH | /api/user/:id | Edit user details, Change user scope
+PUT | /api/login/:id | Password change

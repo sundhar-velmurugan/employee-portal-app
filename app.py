@@ -10,6 +10,7 @@ app.config.from_pyfile('config.py')
 mysql = MySQL()
 mysql.init_app(app)
 
+# For random password generation on account creation
 generate_password = random_password_generator()
 
 def auth_wrapper(method):
@@ -19,6 +20,13 @@ def auth_wrapper(method):
 		# if the user has scope allow operation
 		# else deny access
 		pass
+
+@app.route('/api/add', methods=['POST'])
+def add_user():
+	data = req.get_json(force = True)
+	print(f'incoming data: {data["type"]}')
+	print(generate_password())
+	return jsonify({ 'status': 200, 'response': 'OK' })	
 
 @app.route('/', methods=['GET'])
 def home():
@@ -30,13 +38,6 @@ def home():
 	# r = {1: 1, 2: 2}
 	# return jsonify({'data': r})
 	return 'Hello There!'
-
-@app.route('/api/add', methods=['POST'])
-def add_user():
-	data = req.get_json(force = True)
-	print(f'incoming data: {data["type"]}')
-	print(generate_password())
-	return jsonify({ 'status': 200, 'response': 'OK' })	
 
 if __name__ == '__main__':
 	app.run()

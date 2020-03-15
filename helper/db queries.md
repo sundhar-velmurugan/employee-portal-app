@@ -8,17 +8,17 @@ CREATE TABLE EmployeeDetails (id INT UNSIGNED AUTO_INCREMENT, first_name VARCHAR
 ```
 ### Create Employee Login Table:
 ```
-CREATE TABLE EmployeeLogin (id INT UNSIGNED NOT NULL, username VARCHAR(20), password BINARY(60) NOT NULL, PRIMARY KEY (username), FOREIGN KEY (id) REFERENCES EmployeeDetails (id));
+CREATE TABLE EmployeeLogin (id INT UNSIGNED UNIQUE NOT NULL, username VARCHAR(20), password BINARY(60) NOT NULL, PRIMARY KEY (username), FOREIGN KEY (id) REFERENCES EmployeeDetails (id));
 ```
 ### Create Admin Info Table:
 ```
-CREATE TABLE AdminInfo (id INT UNSIGNED NOT NULL, is_super BOOL DEFAULT false, is_primary BOOL DEFAULT false, FOREIGN KEY (id) REFERENCES EmployeeDetails (id));
+CREATE TABLE AdminInfo (id INT UNSIGNED UNIQUE NOT NULL, is_super BOOL DEFAULT false, is_primary BOOL DEFAULT false, FOREIGN KEY (id) REFERENCES EmployeeDetails (id));
 ```
 ### Create Manager Info Table:
 ```
-CREATE TABLE ManagerInfo (id INT UNSIGNED NOT NULL, added_by INT UNSIGNED NOT NULL, reporting_to INT UNSIGNED, FOREIGN KEY (id) REFERENCES EmployeeDetails (id), FOREIGN KEY(added_by) REFERENCES AdminInfo (id), FOREIGN KEY (reporting_to) REFERENCES AdminInfo (id));
+CREATE TABLE ManagerInfo (id INT UNSIGNED UNIQUE NOT NULL, added_by INT UNSIGNED NOT NULL, reporting_to INT UNSIGNED, FOREIGN KEY (id) REFERENCES EmployeeDetails (id), FOREIGN KEY(added_by) REFERENCES AdminInfo (id), FOREIGN KEY (reporting_to) REFERENCES AdminInfo (id));
 ```
 ### Create Staff Info Table:
 ```
-CREATE TABLE StaffInfo (id INT UNSIGNED NOT NULL, added_by INT UNSIGNED NOT NULL, reporting_to INT UNSIGNED, FOREIGN KEY (id) REFERENCES EmployeeDetails (id), FOREIGN KEY(added_by) REFERENCES AdminInfo (id), FOREIGN KEY (reporting_to) REFERENCES ManagerInfo (id));
+CREATE TABLE StaffInfo (id INT UNSIGNED UNIQUE NOT NULL, added_by INT UNSIGNED NOT NULL, reporting_to INT UNSIGNED, FOREIGN KEY (id) REFERENCES EmployeeDetails (id), FOREIGN KEY(added_by) REFERENCES AdminInfo (id), FOREIGN KEY (reporting_to) REFERENCES ManagerInfo (id));
 ```
