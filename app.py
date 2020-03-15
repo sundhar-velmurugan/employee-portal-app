@@ -39,7 +39,7 @@ def auth_wrapper(method):
 					fetched_username, current_user = cur.fetchall()[0]
 					if not fetched_username:
 						raise Exception('Invalid Token')
-			return method(current_user=current_user, *args, **kwargs)
+			return method(current_user_id=current_user, *args, **kwargs)
 		except jwt.exceptions.ExpiredSignatureError as e:
 			return jsonify({ 'message': 'Session Expired' }), 403
 		except Exception as e:
