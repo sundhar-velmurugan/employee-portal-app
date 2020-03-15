@@ -15,3 +15,7 @@ class AddUser(Schema):
   email = fields.Email(required = True)
   username = fields.String(required = True, validate=validate.Length(max=20))
   options = fields.Nested(UserOptions)
+
+class UserLogin(Schema):
+  username = fields.String(required = True)
+  password = fields.String(required = True)

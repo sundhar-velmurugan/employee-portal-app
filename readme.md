@@ -20,6 +20,7 @@ MYSQL_DATABASE_USER='sundhar'
 MYSQL_DATABASE_PASSWORD=''
 MYSQL_DATABASE_DB='flask'
 MYSQL_DATABASE_HOST='localhost'
+TOKEN_KEY='random_string'
 ```
 ### Initialize database
 To create the same database structure used in this application refer `helper/db\ queries.md`
