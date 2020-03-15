@@ -15,7 +15,7 @@ from random_password_generator import random_password_generator
 from schema import AddUser, UserLogin
 from util import get_items, generate_placeholders
 
-# creating instance of the Flask class
+# creating an instance of Flask class
 app = Flask(__name__)
 
 app.config.from_pyfile('config.py')
