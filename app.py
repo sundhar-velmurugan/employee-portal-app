@@ -1,8 +1,12 @@
 from flask import Flask, jsonify, request as req
 from flaskext.mysql import MySQL
 from functools import wraps
+from marshmallow import ValidationError
+
+# Custom Functions
 from db import MySQLConnection
 from random_password_generator import random_password_generator
+from schema import AddUser
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -23,9 +27,15 @@ def auth_wrapper(method):
 
 @app.route('/api/add', methods=['POST'])
 def add_user():
-	data = req.get_json(force = True)
-	print(f'incoming data: {data["type"]}')
-	print(generate_password())
+	try:
+		data = AddUser().load(req.get_json(force = True))
+		print(data)
+	except ValidationError as err:
+		return jsonify(err.messages)
+	except:
+		return jsonify({'message': 'Error occured'})
+	# print(f'incoming data: {data["type"]}')
+	# print(generate_password())
 	return jsonify({ 'status': 200, 'response': 'OK' })	
 
 @app.route('/', methods=['GET'])
