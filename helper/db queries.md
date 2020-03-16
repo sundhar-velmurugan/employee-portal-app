@@ -8,7 +8,7 @@ CREATE TABLE EmployeeDetails (id INT UNSIGNED AUTO_INCREMENT, first_name VARCHAR
 ```
 ### Create Employee Login Table:
 ```
-CREATE TABLE EmployeeLogin (id INT UNSIGNED UNIQUE NOT NULL, username VARCHAR(20), password BINARY(60) NOT NULL, PRIMARY KEY (username), FOREIGN KEY (id) REFERENCES EmployeeDetails (id));
+CREATE TABLE EmployeeLogin (id INT UNSIGNED UNIQUE NOT NULL, username VARCHAR(20), password BINARY(60) NOT NULL, PRIMARY KEY (username), user_type VARCHAR(10) NOT NULL, FOREIGN KEY (id) REFERENCES EmployeeDetails (id), CHECK(user_type in ('admin', 'manager', 'staff')));
 ```
 ### Create Admin Info Table:
 ```

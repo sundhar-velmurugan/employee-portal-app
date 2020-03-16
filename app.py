@@ -34,17 +34,18 @@ def auth_wrapper(method):
 			payload = jwt.decode(access_token.encode('utf-8'), app.config['TOKEN_KEY'], algorithms='HS256')
 			username = payload['username']
 			current_user = None
+			user_type = None
 
 			with MySQLConnection(mysql) as connection:
 				with connection.cursor() as cur:
-					get_user = "SELECT username, id FROM EmployeeLogin WHERE username = %s"
+					get_user = "SELECT username, id, user_type FROM EmployeeLogin WHERE username = %s"
 					cur.execute(get_user, username)
-					fetched_username, current_user = cur.fetchall()[0]
+					fetched_username, current_user, user_type = cur.fetchall()[0]
 
 					if not fetched_username:
-						raise Exception('Invalid Token')
+						raise Exception('Invalid Token')					
 
-			return method(current_user_id=current_user, *args, **kwargs)
+			return method(current_user_id=current_user, current_user_type=user_type, *args, **kwargs)
 			
 		except jwt.exceptions.ExpiredSignatureError as e:
 			return jsonify({ 'message': 'Session Expired' }), 403
@@ -82,18 +83,21 @@ def login():
 
 @app.route('/api/add', methods=['POST'])
 @auth_wrapper
-def add_user(current_user_id):
+def add_user(current_user_id, current_user_type):
 	connection = None
 	try:
 		data = AddUser().load(request.get_json(force = True))
 
-		if data.get('options', None):
-			options = data['options']
-			del data['options']
-
 		username, email, user_type = data['username'], data['email'], data['user_type']
 		del data['username']
 		del data['user_type']
+
+		if data.get('options', None):
+			options = data['options']
+			del data['options']
+		else:
+			options = {}
+
 		keys, values = get_items(data)
 		connection = mysql.connect()
 
@@ -113,24 +117,37 @@ def add_user(current_user_id):
 			user_id = cur.fetchall()[0][0]
 			password = generate_password()
 			pw_hash = bcrypt.generate_password_hash(password)
-			login_query = "INSERT INTO EmployeeLogin VALUES ("+generate_placeholders(3)+")"
-			cur.execute(login_query, (user_id, username, pw_hash))
+			login_query = "INSERT INTO EmployeeLogin VALUES ("+generate_placeholders(4)+")"
+			cur.execute(login_query, (user_id, username, pw_hash, user_type))
 
 			if user_type == 'admin':
+				if current_user_type != 'admin':
+					raise ValueError('Invalied operation')
 				options['id'] = user_id
 				keys, values = get_items(options)
 
-				if len(keys):
-					role_query = "INSERT INTO AdminInfo ("+keys+") VALUES ("+generate_placeholders(len(values))+")"
-					cur.execute(role_query, values)
+				role_query = "INSERT INTO AdminInfo ("+keys+") VALUES ("+generate_placeholders(len(values))+")"
+				cur.execute(role_query, values)	
 
 			elif user_type == 'manager':
-				# Add added by user to the data by getting from authentication
-				pass
+				if current_user_type != 'admin':
+					raise ValueError('Invalied operation')
+				options['id'] = user_id
+				options['added_by'] = current_user_id
+				keys, values = get_items(options)
+
+				role_query = "INSERT INTO ManagerInfo ("+keys+") VALUES ("+generate_placeholders(len(values))+")"
+				cur.execute(role_query, values)	
 
 			elif user_type == 'staff':
-				# Add added by user to the data by getting from authentication
-				pass
+				if current_user_type not in ('admin', 'manager'):
+					raise ValueError('Invalied operation')
+				options['id'] = user_id
+				options['added_by'] = current_user_id
+				keys, values = get_items(options)
+
+				role_query = "INSERT INTO StaffInfo ("+keys+") VALUES ("+generate_placeholders(len(values))+")"
+				cur.execute(role_query, values)	
 
 		connection.commit()
 		return jsonify({ 'message': 'User Created' }), 201
@@ -139,7 +156,7 @@ def add_user(current_user_id):
 		return jsonify({ 'message': err.messages }), 400
 
 	except ValueError as err:
-		return jsonify({ 'message': 'Primary user already exists' }), 400
+		return jsonify({ 'message': err }), 400
 
 	except Exception as err:
 		if connection:

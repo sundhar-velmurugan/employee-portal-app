@@ -38,6 +38,7 @@ Column | Data Type | Constraints
 Id | INT UNSIGNED | FOREIGN KEY – Employee Details(Id), UNIQUE
 Username | VARCHAR(20) | PRIMARY KEY
 Password | BINARY(60) | NOT NULL
+User Type | VARCHAR(10) | NOT NULL, CHECK in ('admin', 'manager', 'staff')
 
 Reason for choosing BINARY(60) as data type for password:
 - **For (60):** Using 2a format in bcrypt needs 60 bytes
