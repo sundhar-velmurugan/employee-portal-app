@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, date
 # Custom modules
 from db import MySQLConnection
 from random_password_generator import random_password_generator
-from schema import AddUser, UserLogin
+from schema import AddUser, UserLogin, PasswordChange
 from util import get_items, generate_placeholders
 
 # creating an instance of Flask class
@@ -76,7 +76,7 @@ def login():
 
 		payload = { 'username': username, 'exp': datetime.utcnow() + timedelta(minutes=5) }
 		token = jwt.encode(payload, app.config['TOKEN_KEY'], algorithm='HS256')
-		# print(token, token.decode('utf-8').encode('utf-8'))
+
 		return jsonify({ 'access_token': token.decode('utf-8') })
 
 	except Exception as e:
@@ -154,6 +154,49 @@ def get_user(current_user_id, user_id, **kwargs):
 		return jsonify({ 'data': data })
 	
 	except Exception as e:
+		print('Error: ', e)
+		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
+
+
+@app.route('/api/pwd/<user_id>', methods=['PATCH'])
+@auth_wrapper
+def password_change(current_user_id, user_id, **kwargs):
+	connection = None
+	try:
+		if current_user_id != int(user_id):
+			raise Exception('Forbidden')
+		
+		data = PasswordChange().load(request.get_json(force = True))
+		old_password, new_password = data['old_password'], data['new_password']
+
+		connection = mysql.connect()
+		
+		with connection.cursor() as cur:
+			get_password = "SELECT password FROM EmployeeLogin WHERE id=%s"
+			cur.execute(get_password, user_id)
+			password_hash = cur.fetchall()[0][0]
+
+			if not password_hash or not bcrypt.check_password_hash(password_hash, old_password):
+				raise Exception('Invalid Credentials')
+				pass
+			
+			pw_hash = bcrypt.generate_password_hash(new_password)
+			login_query = "UPDATE EmployeeLogin SET password = %s WHERE id = %s"
+			cur.execute(login_query, (pw_hash, user_id))
+
+		connection.commit()
+		return { 'message': 'Password Changed' }
+
+	except ValidationError as err:
+		return jsonify({ 'message': err.messages }), 400
+
+	except Exception as e:
+		if str(e) == 'Forbidden':
+			return jsonify({ 'message': str(e) }), 403
+		elif str(e) == 'Invalid Credentials':
+			return jsonify({ 'message': str(e) }), 401
+		if connection:
+			connection.rollback()
 		print('Error: ', e)
 		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
 

@@ -28,4 +28,4 @@ POST | /api/add | Add user
 GET | /api/user/:id | Get entire user details (if authorized)
 DELETE | /api/user/:id | Remove user
 PATCH | /api/user/:id | Edit user details, Change user scope
-PUT | /api/pwd/:id | Password change
+PATCH | /api/pwd/:id | Password change

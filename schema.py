@@ -19,3 +19,7 @@ class AddUser(Schema):
 class UserLogin(Schema):
   username = fields.String(required = True)
   password = fields.String(required = True)
+
+class PasswordChange(Schema):
+  old_password = fields.String(required = True)
+  new_password = fields.String(required = True)
