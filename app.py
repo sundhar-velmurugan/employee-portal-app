@@ -191,12 +191,12 @@ def password_change(current_user_id, user_id, **kwargs):
 		return jsonify({ 'message': err.messages }), 400
 
 	except Exception as e:
+		if connection:
+			connection.rollback()
 		if str(e) == 'Forbidden':
 			return jsonify({ 'message': str(e) }), 403
 		elif str(e) == 'Invalid Credentials':
 			return jsonify({ 'message': str(e) }), 401
-		if connection:
-			connection.rollback()
 		print('Error: ', e)
 		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
 
