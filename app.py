@@ -26,6 +26,7 @@ bcrypt = Bcrypt(app)
 # For random password generation on account creation
 generate_password = random_password_generator()
 
+
 def auth_wrapper(method):
 	@wraps(method)
 	def wrapper(*args, **kwargs):
@@ -56,6 +57,7 @@ def auth_wrapper(method):
 
 	return wrapper
 
+
 @app.route('/api/login', methods=['POST'])
 def login():
 	try:
@@ -80,6 +82,26 @@ def login():
 	except Exception as e:
 		print('Error:', e)
 		return jsonify({ 'message': 'Authentication Error' }), 401
+
+
+@app.route('/api/users', methods=['GET'])
+def get_users():
+	try:
+		with MySQLConnection(mysql) as connection:
+			with connection.cursor() as cur:
+				fetch_users = "SELECT d.first_name, d.last_name, d.title, l.user_type FROM EmployeeDetails AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id"
+				cur.execute(fetch_users)
+				result = cur.fetchall()
+				users = []
+				for user in result:
+					fname, lname, title, utype = user
+					users.append({ 'first_name': fname, 'last_name': lname, 'title': title, 'user_type': utype })
+		
+		return jsonify({ 'data': users })
+	
+	except Exception as e:
+		print('Error: ', e)
+		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
 
 @app.route('/api/add', methods=['POST'])
 @auth_wrapper
@@ -167,6 +189,7 @@ def add_user(current_user_id, current_user_type):
 	finally:
 		if connection:
 			connection.close()
+
 
 @app.route('/', methods=['GET'])
 def home():

@@ -25,7 +25,7 @@ GET | /api/user/:id | Get public user details (if not authenticated)
 Method | URL | Description
 --- | --- | ---
 POST | /api/add | Add user
-GET | /api/user/:id | Get entire user details (if authenticated)
+GET | /api/user/:id | Get entire user details (if authorized)
 DELETE | /api/user/:id | Remove user
 PATCH | /api/user/:id | Edit user details, Change user scope
-PUT | /api/login/:id | Password change
+PUT | /api/pwd/:id | Password change
