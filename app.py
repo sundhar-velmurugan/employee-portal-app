@@ -164,7 +164,7 @@ def password_change(current_user_id, user_id, **kwargs):
 	connection = None
 	try:
 		if current_user_id != int(user_id):
-			raise Exception('Forbidden')
+			raise Exception('Unauthorized')
 		
 		data = PasswordChange().load(request.get_json(force = True))
 		old_password, new_password = data['old_password'], data['new_password']
@@ -193,10 +193,10 @@ def password_change(current_user_id, user_id, **kwargs):
 	except Exception as e:
 		if connection:
 			connection.rollback()
-		if str(e) == 'Forbidden':
-			return jsonify({ 'message': str(e) }), 403
-		elif str(e) == 'Invalid Credentials':
+		if str(e) == 'Unauthorized':
 			return jsonify({ 'message': str(e) }), 401
+		elif str(e) == 'Invalid Credentials':
+			return jsonify({ 'message': str(e) }), 403
 		print('Error: ', e)
 		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
 
@@ -207,7 +207,7 @@ def add_user(current_user_id, current_user_type):
 	connection = None
 	try:
 		if current_user_type != 'admin':
-			raise Exception('Invalied operation')
+			raise Exception('Unauthorized')
 		
 		data = AddUser().load(request.get_json(force = True))
 
@@ -300,8 +300,10 @@ def add_user(current_user_id, current_user_type):
 	except Exception as err:
 		if connection:
 			connection.rollback()
-		if str(err) == 'Invalied operation' or str(err) == 'Primary user already exists' or str(err) == 'Reporting to: Not an Admin' or str(err) == 'Reporting to: Not a Manager':
+		if str(err) == 'Primary user already exists' or str(err) == 'Reporting to: Not an Admin' or str(err) == 'Reporting to: Not a Manager':
 			return jsonify({ 'message': str(err) }), 400
+		elif str(err) == 'Unauthorized':
+			return jsonify({ 'message': str(err) }), 401
 		print("Unexpected error:", err)
 		return jsonify({ 'message': 'Cannot process request' }), 500
 		
