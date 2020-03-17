@@ -7,7 +7,7 @@ import jwt
 
 # General modules
 from functools import wraps
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 # Custom modules
 from db import MySQLConnection
@@ -92,6 +92,7 @@ def get_users():
 				fetch_users = "SELECT d.first_name, d.last_name, d.title, l.user_type FROM EmployeeDetails AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id"
 				cur.execute(fetch_users)
 				result = cur.fetchall()
+
 				users = []
 				for user in result:
 					fname, lname, title, utype = user
@@ -102,6 +103,53 @@ def get_users():
 	except Exception as e:
 		print('Error: ', e)
 		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
+
+
+@app.route('/api/user/<user_id>', methods=['GET'])
+@auth_wrapper
+def get_user(current_user_id, user_id, **kwargs):
+	try:
+		data = {}
+		if int(user_id) == current_user_id:
+			with MySQLConnection(mysql) as connection:
+				with connection.cursor() as cur:
+					fetch_users = "SELECT d.first_name, d.last_name, d.title, d.phone_number, d.date_of_birth, d.email, d.creation_time, d.modification_time, l.username, l.user_type FROM (SELECT * FROM EmployeeDetails WHERE id = %s) AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id"
+					cur.execute(fetch_users, user_id)
+					
+					user = cur.fetchall()[0]
+					data = {
+						'first_name': user[0],
+						'last_name': user[1],
+						'title': user[2],
+						'phone_number': user[3],
+						'date_of_birth': user[4],
+						'email': user[5],
+						'creation_time': user[6],
+						'modification_time': user[7],
+						'username': user[8],
+						'user_type': user[9],
+					}
+
+		else:
+			with MySQLConnection(mysql) as connection:
+				with connection.cursor() as cur:
+					fetch_users = "SELECT d.first_name, d.last_name, d.title, l.user_type FROM (SELECT * FROM EmployeeDetails WHERE id = %s) AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id"
+					cur.execute(fetch_users, user_id)
+					
+					user = cur.fetchall()[0]
+					data = {
+						'first_name': user[0],
+						'last_name': user[1],
+						'title': user[2],
+						'user_type': user[3],
+					}
+		
+		return jsonify({ 'data': data })
+	
+	except Exception as e:
+		print('Error: ', e)
+		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
+
 
 @app.route('/api/add', methods=['POST'])
 @auth_wrapper
