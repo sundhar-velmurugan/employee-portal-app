@@ -178,7 +178,7 @@ def add_user(current_user_id, current_user_type):
 				cur.execute(primary_users)
 				primary_user_count = cur.fetchall()[0][0]
 				if primary_user_count:
-					raise ValueError('Primary user already exists')
+					raise Exception('Primary user already exists')
 
 			detail_query = "INSERT INTO EmployeeDetails ("+keys+") VALUES ("+generate_placeholders(len(values))+")"
 			cur.execute(detail_query, values)
@@ -192,7 +192,7 @@ def add_user(current_user_id, current_user_type):
 
 			if user_type == 'admin':
 				if current_user_type != 'admin':
-					raise ValueError('Invalied operation')
+					raise Exception('Invalied operation')
 				options['id'] = user_id
 				keys, values = get_items(options)
 
@@ -201,7 +201,7 @@ def add_user(current_user_id, current_user_type):
 
 			elif user_type == 'manager':
 				if current_user_type != 'admin':
-					raise ValueError('Invalied operation')
+					raise Exception('Invalied operation')
 				options['id'] = user_id
 				options['added_by'] = current_user_id
 				keys, values = get_items(options)
@@ -211,7 +211,7 @@ def add_user(current_user_id, current_user_type):
 
 			elif user_type == 'staff':
 				if current_user_type not in ('admin', 'manager'):
-					raise ValueError('Invalied operation')
+					raise Exception('Invalied operation')
 				options['id'] = user_id
 				options['added_by'] = current_user_id
 				keys, values = get_items(options)
@@ -225,12 +225,11 @@ def add_user(current_user_id, current_user_type):
 	except ValidationError as err:
 		return jsonify({ 'message': err.messages }), 400
 
-	except ValueError as err:
-		return jsonify({ 'message': err }), 400
-
 	except Exception as err:
 		if connection:
 			connection.rollback()
+		if str(err) == 'Invalied operation' or str(err) == 'Primary user already exists':
+			return jsonify({ 'message': str(err) }), 400
 		print("Unexpected error:", err)
 		return jsonify({ 'message': 'Cannot process request' }), 500
 		
