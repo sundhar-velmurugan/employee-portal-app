@@ -206,6 +206,9 @@ def password_change(current_user_id, user_id, **kwargs):
 def add_user(current_user_id, current_user_type):
 	connection = None
 	try:
+		if current_user_type != 'admin':
+			raise Exception('Invalied operation')
+		
 		data = AddUser().load(request.get_json(force = True))
 
 		username, email, user_type = data['username'], data['email'], data['user_type']
@@ -217,9 +220,34 @@ def add_user(current_user_id, current_user_type):
 			del data['options']
 		else:
 			options = {}
+		
+		connection = mysql.connect()
+
+		if user_type == 'manager':
+			reporting_to = options['reporting_to']
+			if reporting_to:
+				with connection.cursor() as cur:
+					admin_query = "SELECT id FROM AdminInfo WHERE id = %s"
+					cur.execute(admin_query, reporting_to)
+
+					admin_id = cur.fetchall()
+
+					if not admin_id:
+						raise Exception('Reporting to: Not an Admin')
+
+		if user_type == 'staff':
+			reporting_to = options['reporting_to']
+			if reporting_to:
+				with connection.cursor() as cur:
+					manager_query = "SELECT id FROM ManagerInfo WHERE id = %s"
+					cur.execute(manager_query, reporting_to)
+
+					manager_id = cur.fetchall()
+
+					if not manager_id:
+						raise Exception('Reporting to: Not a Manager')
 
 		keys, values = get_items(data)
-		connection = mysql.connect()
 
 		with connection.cursor() as cur:
 			if options.get('is_primary', None):
@@ -241,8 +269,6 @@ def add_user(current_user_id, current_user_type):
 			cur.execute(login_query, (user_id, username, pw_hash, user_type))
 
 			if user_type == 'admin':
-				if current_user_type != 'admin':
-					raise Exception('Invalied operation')
 				options['id'] = user_id
 				keys, values = get_items(options)
 
@@ -250,8 +276,6 @@ def add_user(current_user_id, current_user_type):
 				cur.execute(role_query, values)	
 
 			elif user_type == 'manager':
-				if current_user_type != 'admin':
-					raise Exception('Invalied operation')
 				options['id'] = user_id
 				options['added_by'] = current_user_id
 				keys, values = get_items(options)
@@ -260,8 +284,6 @@ def add_user(current_user_id, current_user_type):
 				cur.execute(role_query, values)	
 
 			elif user_type == 'staff':
-				if current_user_type not in ('admin', 'manager'):
-					raise Exception('Invalied operation')
 				options['id'] = user_id
 				options['added_by'] = current_user_id
 				keys, values = get_items(options)
@@ -278,7 +300,7 @@ def add_user(current_user_id, current_user_type):
 	except Exception as err:
 		if connection:
 			connection.rollback()
-		if str(err) == 'Invalied operation' or str(err) == 'Primary user already exists':
+		if str(err) == 'Invalied operation' or str(err) == 'Primary user already exists' or str(err) == 'Reporting to: Not an Admin' or str(err) == 'Reporting to: Not a Manager':
 			return jsonify({ 'message': str(err) }), 400
 		print("Unexpected error:", err)
 		return jsonify({ 'message': 'Cannot process request' }), 500
