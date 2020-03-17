@@ -18,7 +18,7 @@ Change User Scope | Super Admin (if Primary user), Admin, Manager, Staff | Manag
 Method | URL | Description
 --- | --- | ---
 POST | /api/login | User Login
-GET | /api/users | Get public details of all users (limit to 100)
+GET | /api/users | Get public details of all users (limit upto 100)
 GET | /api/user/:id | Get public user details (if not authenticated)
 
 ### Protected API:

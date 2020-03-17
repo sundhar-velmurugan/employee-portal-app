@@ -87,10 +87,15 @@ def login():
 @app.route('/api/users', methods=['GET'])
 def get_users():
 	try:
+		from_record = 0 if request.args.get('from') is None else int(request.args.get('from'))
+		limit = 50 if request.args.get('limit') is None else int(request.args.get('limit'))
+		if limit > 100 or limit <= 0 or from_record < 0:
+			raise Exception('Unprocessable Entity')
+		
 		with MySQLConnection(mysql) as connection:
 			with connection.cursor() as cur:
-				fetch_users = "SELECT d.first_name, d.last_name, d.title, l.user_type FROM EmployeeDetails AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id"
-				cur.execute(fetch_users)
+				fetch_users = "SELECT d.first_name, d.last_name, d.title, l.user_type FROM EmployeeDetails AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id LIMIT %s OFFSET %s"
+				cur.execute(fetch_users, (limit, from_record))
 				result = cur.fetchall()
 
 				users = []
@@ -101,6 +106,8 @@ def get_users():
 		return jsonify({ 'data': users })
 	
 	except Exception as e:
+		if str(e) == 'Unprocessable Entity':
+			return jsonify({ 'message': str(e) }), 422
 		print('Error: ', e)
 		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
 
