@@ -12,8 +12,8 @@ from datetime import datetime, timedelta, date
 # Custom modules
 from db import MySQLConnection
 from random_password_generator import random_password_generator
-from schema import AddUser, UserLogin, PasswordChange
-from util import get_items, generate_placeholders
+from schema import AddUser, UserLogin, PasswordChange, EditUser
+from util import get_items, generate_placeholders, get_update_items
 
 # creating an instance of Flask class
 app = Flask(__name__)
@@ -44,7 +44,7 @@ def auth_wrapper(method):
 					fetched_username, current_user, user_type = cur.fetchall()[0]
 
 					if not fetched_username:
-						raise Exception('Invalid Token')					
+						raise Exception('Invalid Token')
 
 			return method(current_user_id=current_user, current_user_type=user_type, *args, **kwargs)
 			
@@ -74,7 +74,7 @@ def login():
 					raise Exception('Invalid Credentials')
 					pass
 
-		payload = { 'username': username, 'exp': datetime.utcnow() + timedelta(minutes=5) }
+		payload = { 'username': username, 'exp': datetime.utcnow() + timedelta(minutes=30) }
 		token = jwt.encode(payload, app.config['TOKEN_KEY'], algorithm='HS256')
 
 		return jsonify({ 'access_token': token.decode('utf-8') })
@@ -200,6 +200,10 @@ def password_change(current_user_id, user_id, **kwargs):
 		print('Error: ', e)
 		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
 
+	finally:
+		if connection:
+			connection.close()
+
 
 @app.route('/api/add', methods=['POST'])
 @auth_wrapper
@@ -310,6 +314,53 @@ def add_user(current_user_id, current_user_type):
 	finally:
 		if connection:
 			connection.close()
+
+
+@app.route('/api/user/<user_id>', methods=['PATCH'])
+@auth_wrapper
+def edit_user(user_id, current_user_id, current_user_type):
+	try:
+		with MySQLConnection(mysql) as connection:
+			with connection.cursor() as cur:
+				check_user = "SELECT id FROM EmployeeDetails WHERE id=%s"
+				cur.execute(check_user, user_id)
+				fetched_user = cur.fetchall()
+
+				if not fetched_user:
+					raise Exception('Not Found')
+
+
+		data = EditUser().load(request.get_json(force = True))
+
+		if data['change_type'] == 'detail':
+			if not (current_user_id == int(user_id) or current_user_type == 'admin'):
+				raise Exception('Unauthorized')
+			
+			detail = data['detail']
+
+			with MySQLConnection(mysql) as connection:
+				with connection.cursor() as cur:
+					print(get_update_items(detail))
+					update_query = f"UPDATE EmployeeDetails SET {get_update_items(detail)} WHERE id = %s"
+					cur.execute(update_query, user_id)
+				connection.commit()
+
+		elif data['change_type'] == 'scope':
+			if current_user_type != 'admin':
+				raise Exception('Unauthorized')
+
+		return jsonify({ 'message': 'User Edited' })
+
+	except ValidationError as err:
+		return jsonify({ 'message': err.messages }), 400
+
+	except Exception as err:
+		if str(err) == 'Unauthorized':
+			return jsonify({ 'message': str(err) }), 401
+		if str(err) == 'Not Found':
+			return jsonify({ 'message': str(err) }), 404
+		print("Unexpected error:", err)
+		return jsonify({ 'message': 'Cannot process request' }), 500
 
 
 @app.route('/', methods=['GET'])

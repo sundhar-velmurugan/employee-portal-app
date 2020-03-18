@@ -9,3 +9,10 @@ def get_items(data):
 
 def generate_placeholders(n):
   return ', '.join(['%s']*n)
+
+
+def get_update_items(data):
+  items = []
+  for k, v in data.items():
+    items.append(f"{k} = '{v}'")
+  return ', '.join(items)

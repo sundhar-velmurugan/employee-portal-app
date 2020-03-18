@@ -23,3 +23,19 @@ class UserLogin(Schema):
 class PasswordChange(Schema):
   old_password = fields.String(required = True)
   new_password = fields.String(required = True)
+
+class DetailChange(Schema):
+  first_name = fields.String(validate=validate.Length(max=20))
+  last_name = fields.String(validate=validate.Length(max=20))
+  title = fields.String(validate=validate.Length(max=30))
+  phone_number = fields.String(validate=validate.Length(max=15))
+  date_of_birth = fields.Date() # ISO Format: YYYY-MM-DD
+  email = fields.Email()
+
+class ScopeChange(Schema):
+  to = fields.String(required = True, validate=validate.OneOf(["admin", "manager", "staff"]))
+
+class EditUser(Schema):
+  change_type = fields.String(required = True, validate=validate.OneOf(['detail', 'scope']))
+  detail = fields.Nested(DetailChange)
+  scope =fields.Nested(ScopeChange)
