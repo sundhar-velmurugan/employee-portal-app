@@ -9,9 +9,12 @@
 Operation/ User Role | Super Admin | Admin | Manager | Staff
 --- | --- | --- | --- | ---
 Add | Super Admin (if Primary user), Admin, Manager, Staff | Manager, Staff | - | -
-Edit | Super Admin (if Primary user), Admin, Manager, Staff, Self | Manager, Staff, Self | Staff, Self | Self
+Edit Details | Super Admin (if Primary user), Admin, Manager, Staff, Self | Manager, Staff, Self | Staff, Self | Self
 Remove | Super Admin (if Primary user), Admin, Manager, Staff | Manager, Staff | - | -
 Change User Scope | Super Admin (if Primary user), Admin, Manager, Staff | Manager, Staff | - | -
+Change Password | Self | Self | Self | Self
+View Basic Details | Everyone | Everyone | Everyone | Everyone
+View Full Details | Self | Self | Self | Self
 
 ## Api:
 ### Public API:
