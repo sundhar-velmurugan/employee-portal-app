@@ -187,7 +187,6 @@ def password_change(current_user_id, user_id, **kwargs):
 
 			if not password_hash or not bcrypt.check_password_hash(password_hash, old_password):
 				raise Exception('Invalid Credentials')
-				pass
 			
 			pw_hash = bcrypt.generate_password_hash(new_password)
 			login_query = "UPDATE EmployeeLogin SET password = %s WHERE id = %s"
