@@ -9,7 +9,7 @@
 Operation/ User Role | Super Admin | Admin | Manager | Staff
 --- | --- | --- | --- | ---
 Add | Super Admin (if Primary user), Admin, Manager, Staff | Manager, Staff | - | -
-Edit Details | Super Admin (if Primary user), Admin, Manager, Staff, Self | Manager, Staff, Self | Staff, Self | Self
+Edit Details | Super Admin (if Primary user), Admin, Manager, Staff, Self | Manager, Staff, Self | Self | Self
 Remove | Super Admin (if Primary user), Admin, Manager, Staff | Manager, Staff | - | -
 Change User Scope | Super Admin (if Primary user), Admin, Manager, Staff | Manager, Staff | - | -
 Change Password | Self | Self | Self | Self
