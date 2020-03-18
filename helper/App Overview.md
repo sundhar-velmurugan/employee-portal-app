@@ -27,7 +27,7 @@ GET | /api/users | Get public details of all users (limit upto 100)
 Method | URL | Description
 --- | --- | ---
 POST | /api/add | Add user
-GET | /api/user/:id | Get user details (for other users)
+GET | /api/user/:id | Get basic user details (for other users)
 GET | /api/user/:id | Get entire user details (for self)
 DELETE | /api/user/:id | Remove user
 PATCH | /api/user/:id | Edit user details, Change user scope

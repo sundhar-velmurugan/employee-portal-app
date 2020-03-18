@@ -70,11 +70,15 @@ def login():
 			with connection.cursor() as cur:
 				get_password = "SELECT password FROM EmployeeLogin WHERE username = %s"
 				cur.execute(get_password, username)
-				password_hash = cur.fetchall()[0][0]
+				result = cur.fetchall()
+
+				if not result:
+					raise Exception('Invalid Credentials')
+				
+				password_hash = result[0][0]
 
 				if not password_hash or not bcrypt.check_password_hash(password_hash, password):
 					raise Exception('Invalid Credentials')
-					pass
 
 		payload = { 'username': username, 'exp': datetime.utcnow() + timedelta(minutes=30) }
 		token = jwt.encode(payload, app.config['TOKEN_KEY'], algorithm='HS256')
@@ -82,8 +86,10 @@ def login():
 		return jsonify({ 'access_token': token.decode('utf-8') })
 
 	except Exception as e:
+		if str(e) == 'Invalid Credentials':
+			return jsonify({ 'message': str(e) }), 401
 		print('Error:', e)
-		return jsonify({ 'message': 'Authentication Error' }), 401
+		return jsonify({ 'message': 'Unexpected Error Occured' }), 500
 
 
 @app.route('/api/users', methods=['GET'])
@@ -387,6 +393,92 @@ def edit_user(user_id, current_user_id, current_user_type):
 	except Exception as err:
 		if str(err) == 'Unauthorized':
 			return jsonify({ 'message': str(err) }), 401
+		if str(err) == 'Not Found':
+			return jsonify({ 'message': str(err) }), 404
+		print("Unexpected error:", err)
+		return jsonify({ 'message': 'Cannot process request' }), 500
+
+
+@app.route('/api/user/<user_id>', methods=['DELETE'])
+@auth_wrapper
+def delete_user(user_id, current_user_type, **kwargs):
+	try:
+		if current_user_type != 'admin':
+			raise Exception('Unauthorized')
+
+		with MySQLConnection(mysql) as connection:
+			with connection.cursor() as cur:
+				check_user = "SELECT user_type FROM EmployeeLogin WHERE id=%s"
+				cur.execute(check_user, user_id)
+				result = cur.fetchall()
+
+				if not result:
+					raise Exception('Not Found')
+
+				user_type = result[0][0]
+
+		if user_type == 'admin':
+			with MySQLConnection(mysql) as connection:
+				with connection.cursor() as cur:
+					primary_user = "SELECT is_primary FROM AdminInfo WHERE id = %s"
+					cur.execute(primary_user, user_id)
+					result = cur.fetchall()[0][0]
+
+					if result:
+						raise Exception('Primary user can\'t be deleted')
+
+					change_reporting_to = "UPDATE ManagerInfo SET reporting_to = NULL WHERE reporting_to = %s"
+					cur.execute(change_reporting_to, user_id)
+
+					remove_info = "DELETE FROM AdminInfo WHERE id = %s"
+					cur.execute(remove_info, user_id)
+
+					remove_login = "DELETE FROM EmployeeLogin WHERE id = %s"
+					cur.execute(remove_login, user_id)
+
+					remove_details = "DELETE FROM EmployeeDetails WHERE id = %s"
+					cur.execute(remove_details, user_id)
+
+				connection.commit()
+
+		elif user_type == 'manager':
+			with MySQLConnection(mysql) as connection:
+				with connection.cursor() as cur:
+					change_reporting_to = "UPDATE StaffInfo SET reporting_to = NULL WHERE reporting_to = %s"
+					cur.execute(change_reporting_to, user_id)
+
+					remove_info = "DELETE FROM ManagerInfo WHERE id = %s"
+					cur.execute(remove_info, user_id)
+
+					remove_login = "DELETE FROM EmployeeLogin WHERE id = %s"
+					cur.execute(remove_login, user_id)
+
+					remove_details = "DELETE FROM EmployeeDetails WHERE id = %s"
+					cur.execute(remove_details, user_id)
+				
+				connection.commit()
+
+		elif user_type == 'staff':
+			with MySQLConnection(mysql) as connection:
+				with connection.cursor() as cur:
+					remove_info = "DELETE FROM StaffInfo WHERE id = %s"
+					cur.execute(remove_info, user_id)
+
+					remove_login = "DELETE FROM EmployeeLogin WHERE id = %s"
+					cur.execute(remove_login, user_id)
+
+					remove_details = "DELETE FROM EmployeeDetails WHERE id = %s"
+					cur.execute(remove_details, user_id)
+
+				connection.commit()
+
+		return jsonify({ 'message': 'User Deleted' })
+
+	except Exception as err:
+		if str(err) == 'Unauthorized':
+			return jsonify({ 'message': str(err) }), 401
+		if str(err) == 'Primary user can\'t be deleted':
+			return jsonify({ 'message': str(err) }), 403
 		if str(err) == 'Not Found':
 			return jsonify({ 'message': str(err) }), 404
 		print("Unexpected error:", err)
