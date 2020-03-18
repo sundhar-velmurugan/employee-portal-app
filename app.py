@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, date
 from db import MySQLConnection
 from random_password_generator import random_password_generator
 from schema import AddUser, UserLogin, PasswordChange, EditUser
-from util import get_items, generate_placeholders, get_update_items
+from util import get_items, generate_placeholders, get_update_items, get_table_name
 
 # creating an instance of Flask class
 app = Flask(__name__)
@@ -41,10 +41,12 @@ def auth_wrapper(method):
 				with connection.cursor() as cur:
 					get_user = "SELECT username, id, user_type FROM EmployeeLogin WHERE username = %s"
 					cur.execute(get_user, username)
-					fetched_username, current_user, user_type = cur.fetchall()[0]
+					result = cur.fetchall()
 
-					if not fetched_username:
+					if not result:
 						raise Exception('Invalid Token')
+
+					fetched_username, current_user, user_type = result[0]
 
 			return method(current_user_id=current_user, current_user_type=user_type, *args, **kwargs)
 			
@@ -268,6 +270,7 @@ def add_user(current_user_id, current_user_type):
 			cur.execute("SELECT id FROM EmployeeDetails WHERE email=%s", (email))
 			user_id = cur.fetchall()[0][0]
 			password = generate_password()
+			print(password)
 			pw_hash = bcrypt.generate_password_hash(password)
 			login_query = "INSERT INTO EmployeeLogin VALUES ("+generate_placeholders(4)+")"
 			cur.execute(login_query, (user_id, username, pw_hash, user_type))
@@ -322,13 +325,14 @@ def edit_user(user_id, current_user_id, current_user_type):
 	try:
 		with MySQLConnection(mysql) as connection:
 			with connection.cursor() as cur:
-				check_user = "SELECT id FROM EmployeeDetails WHERE id=%s"
+				check_user = "SELECT user_type FROM EmployeeLogin WHERE id=%s"
 				cur.execute(check_user, user_id)
-				fetched_user = cur.fetchall()
+				result = cur.fetchall()
 
-				if not fetched_user:
+				if not result:
 					raise Exception('Not Found')
 
+				old_user_type = result[0][0]
 
 		data = EditUser().load(request.get_json(force = True))
 
@@ -340,7 +344,6 @@ def edit_user(user_id, current_user_id, current_user_type):
 
 			with MySQLConnection(mysql) as connection:
 				with connection.cursor() as cur:
-					print(get_update_items(detail))
 					update_query = f"UPDATE EmployeeDetails SET {get_update_items(detail)} WHERE id = %s"
 					cur.execute(update_query, user_id)
 				connection.commit()
@@ -348,6 +351,32 @@ def edit_user(user_id, current_user_id, current_user_type):
 		elif data['change_type'] == 'scope':
 			if current_user_type != 'admin':
 				raise Exception('Unauthorized')
+
+			new_user_type = data['scope']['to']
+
+			if new_user_type == old_user_type:
+				return jsonify({ 'message': 'No modification needed' }), 304
+
+			with MySQLConnection(mysql) as connection:
+				with connection.cursor() as cur:
+					find_user = f"SELECT * FROM {get_table_name(old_user_type)} WHERE id = %s"
+					cur.execute(find_user, user_id)
+					result = cur.fetchall()[0][:-1]
+					keys = ['id', 'added_by']
+					if data['scope'].get('reporting_to', None):
+						keys.append('reporting_to')
+						result += (data['scope']['reporting_to'] ,)
+
+					insert_user = f"INSERT INTO {get_table_name(new_user_type)} ({', '.join(keys)}) VALUES ({generate_placeholders(len(result))})"
+					cur.execute(insert_user, result)
+
+					update_user = f"UPDATE EmployeeLogin SET user_type = %s WHERE id = %s"
+					cur.execute(update_user, (new_user_type, user_id))
+
+					delete_user = f"DELETE FROM {get_table_name(old_user_type)} WHERE id = %s"
+					cur.execute(delete_user, user_id)
+
+				connection.commit()
 
 		return jsonify({ 'message': 'User Edited' })
 

@@ -33,7 +33,8 @@ class DetailChange(Schema):
   email = fields.Email()
 
 class ScopeChange(Schema):
-  to = fields.String(required = True, validate=validate.OneOf(["admin", "manager", "staff"]))
+  to = fields.String(required = True, validate=validate.OneOf(["manager", "staff"]))
+  reporting_to = fields.Integer()
 
 class EditUser(Schema):
   change_type = fields.String(required = True, validate=validate.OneOf(['detail', 'scope']))

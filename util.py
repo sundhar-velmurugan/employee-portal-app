@@ -16,3 +16,7 @@ def get_update_items(data):
   for k, v in data.items():
     items.append(f"{k} = '{v}'")
   return ', '.join(items)
+
+
+def get_table_name(type):
+  return type.capitalize()+'Info'
