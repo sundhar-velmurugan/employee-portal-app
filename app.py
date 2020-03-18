@@ -96,14 +96,14 @@ def get_users():
 		
 		with MySQLConnection(mysql) as connection:
 			with connection.cursor() as cur:
-				fetch_users = "SELECT d.first_name, d.last_name, d.title, l.user_type FROM EmployeeDetails AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id LIMIT %s OFFSET %s"
+				fetch_users = "SELECT first_name, last_name, title FROM EmployeeDetails LIMIT %s OFFSET %s"
 				cur.execute(fetch_users, (limit, from_record))
 				result = cur.fetchall()
 
 				users = []
 				for user in result:
-					fname, lname, title, utype = user
-					users.append({ 'first_name': fname, 'last_name': lname, 'title': title, 'user_type': utype })
+					fname, lname, title = user
+					users.append({ 'first_name': fname, 'last_name': lname, 'title': title })
 		
 		return jsonify({ 'data': users })
 	
@@ -142,7 +142,7 @@ def get_user(current_user_id, user_id, **kwargs):
 		else:
 			with MySQLConnection(mysql) as connection:
 				with connection.cursor() as cur:
-					fetch_users = "SELECT d.first_name, d.last_name, d.title, l.user_type FROM (SELECT * FROM EmployeeDetails WHERE id = %s) AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id"
+					fetch_users = "SELECT d.first_name, d.last_name, d.title, d.email, l.user_type FROM (SELECT * FROM EmployeeDetails WHERE id = %s) AS d INNER JOIN EmployeeLogin AS l ON d.id=l.id"
 					cur.execute(fetch_users, user_id)
 					
 					user = cur.fetchall()[0]
@@ -150,7 +150,8 @@ def get_user(current_user_id, user_id, **kwargs):
 						'first_name': user[0],
 						'last_name': user[1],
 						'title': user[2],
-						'user_type': user[3],
+						'email': user[3],
+						'user_type': user[4]
 					}
 		
 		return jsonify({ 'data': data })
