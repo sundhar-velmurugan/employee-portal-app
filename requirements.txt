@@ -3,4 +3,4 @@ flask-mysql==1.5.1
 marshmallow==3.5.1
 flask-bcrypt==0.7.1 
 pyjwt==1.7.1
-cryptography==2.8
+cryptography==3.2
